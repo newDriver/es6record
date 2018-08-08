@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<h4>带参数默认值的函数</h4>
+			<h5>在 ES5 中模拟参数默认值</h5>
+			<p>
+				function makeRequest(url, timeout, callback) {
+					timeout = timeout || 2000;
+					callback = callback || function() {};
+					// 函数的剩余部分
+					<!--防止假参数-->
+					下面是代码为避免特殊参数造成错误，升级
+					timeout = (typeof timeout !== "undefined") ? timeout : 2000;
+					callback = (typeof callback !== "undefined") ? callback : function() {};
+				}
+			</p>
+			<h5>ES6 中的参数默认值</h5>
+			<p>
+				ES6 能更容易地为参数提供默认值， 它使用了初始化形式， 以便在参数未被正式传递进来时使用。 例如：
+				function makeRequest(url, timeout = 2000, callback = function() {}) {
+					// 函数的剩余部分
+				}
+			</p>
+			<h5>参数默认值如何影响 arguments 对象</h5>
+			<h5>参数默认值表达式</h5>
+			<h5>参数默认值的暂时性死区</h5>
+			参数默认值同样有着无法访问特定参数的暂时性死区。 
+			与 let 声明相似， 函数每个参数都会创建一个新的标识符绑定， 它在初始化之前不允许被访问， 否则会抛出错误。
+			 参数初始化会在函数被调用时进行， 无论是给参数传递了一个值、 还是使用了参数的默认值。
+				为了探寻参数默认值中的暂时性死区， 
+				function getValue(value) {
+				return value + 5;
+				} f
+				unction add(first, second = getValue(first)) {
+				return first + second;
+				} 
+				console.log(add(1, 1)); // 2
+				console.log(add(1)); // 7
+				调用 add(1, 1) 和 add(1) 事实上执行了以下代码来创建 first 与 second 的参数值：
+				// JS 调用 add(1, 1) 可表示为
+				let first = 1;
+				let second = 1;
+				// JS 调用 add(1) 可表示为
+				let first = 1;
+				let second = getValue(first);
+				第三章 函数
+				49当函数 add() 第一次执行时， first 与 second 的绑定被加入了特定参数的暂时性死区
+				（ 类似于 let 声明的行为） 。 因此 second 可以使用 first 来初始化， 因为此处 first
+				总是已经完成了初始化， 但反之则不行。 现在再研究以下重写过的 add() 函数：
+				function add(first = second, second) {
+				return first + second;
+				} c
+				onsole.log(add(1, 1)); // 2
+				console.log(add(undefined, 1)); // 抛出错误 因为在 first 被初始化时 second 尚未被初始化。
+				本例中调用 add(1, 1) 与 add(undefined, 1) 对应着以下的后台代码：
+				// JS 调用 add(1, 1) 可表示为
+				let first = 1;
+				let second = 1;
+				// JS 调用 add(1) 可表示为
+				let first = second;
+				let second = 1;
+				 此处的 second 存在于暂时性死区内， 对于 second 的引用就抛出了错误。 
+函数参数拥有各自的作用域和暂时性死区， 与函数体的作用域相分离， 这意味着参数的默认值不允许访问在函数体内部声明的任意变量。
+		<h4>使用不具名参数 </h4>
+			<h5>ES5 中的不具名参数</h5>
+			<h5>剩余参数</h5>
+			剩余参数（ rest parameter ） 由三个点（ ... ） 与一个紧跟着的具名参数指定， 它会是包含传递给函数的其余参数的一个数组， 名称中的“剩余”也由此而来。 
+			
+			function pick(object, ...keys) {
+				let result = Object.create(null);
+				for (let i = 0, len = keys.length; i < len; i++) {
+					result[keys[i]] = object[keys[i]];
+				}
+				 return result;
+			}
+				 keys 是一个包含所有在 object 之后的参数的剩余参数（ 这与包含所有参数的 arguments 不同， 后者会连第一个参数都包含在内） 。
+				  这意味着你可以对 keys 从头到尾进行迭代， 而不需要有所顾虑。 作为一个额外的收益， 通过观察该函数便能判明它具有处理任意数量参数的能力。
+				函数的 length 属性用于指示具名参数的数量， 而剩余参数对其毫无影响。 
+				pick() 函数的 length 属性值是 1 ， 因为只有 object 参数被用于计算该值。
+			<h5>剩余参数的限制条件</h5>
+			剩余参数受到两点限制。 一是函数只能有一个剩余参数， 并且它必须被放在最后。 第二个限制是剩余参数不能在对象字面量的 setter 属性中使用。
+			<h5>剩余参数如何影响 arguments 对象</h5>
+		<h4>函数构造器的增强能力 </h4>
+		function 构造器允许你动态创建一个新函数， 但在 JS 中并不常用。 传给该构造器的参数都是字符串， 它们就是目标函数的参数与函数体， 
+		ES6 增强了 Function 构造器的能力， 允许使用默认参数以及剩余参数。 
+		对于默认参数来，只需为参数名称添加等于符号以及默认值。
+		var add = new Function("first", "second = first","return first + second");
+			console.log(add(1, 1)); // 2
+			console.log(add(1)); // 2
+			在此例中， 当只传递了一个参数时， first 的值会被赋给 second 参数， 此处的语法与不使
+			用 Function 的函数声明一致。
+			而对剩余参数来说， 只需在最后一个参数前添加 ... 即可， 就像这样：
+			var pickFirst = new Function("...args", "return args[0]");
+			console.log(pickFirst(1, 2)); // 1
+			此代码创建了一个仅使用剩余参数的函数， 让其返回所传入的第一个参数。
+			默认参数和剩余参数的添加， 确保了 Function 构造器拥有与函数声明形式相同的所有能
+			力。
+		<h4>扩展运算符 </h4>
+		剩余参数允许你把多个独立的参数合并到一个数组中；
+		 而扩展运算符则允许将一个数组分割， 并将各个项作为分离的参数传给函数。
+		 let values = [25, 50, 75, 100]
+		// 等价于 console.log(Math.max(25, 50, 75, 100));
+		console.log(Math.max.apply(Math, values)); // 100
+		console.log(Math.max(...values)); // 100
+		<h4>ES6 的名称属性 </h4>
+		 匿名函数表达式的流行使得调试有点困难， 经常导致堆栈跟踪难以被阅读与解释。 正因为此， ES6 给所有函数添加了 name 属性。
+		function doSomething() {
+			// ...
+		}
+		 var doAnotherThing = function() {
+			// ...
+		};
+			console.log(doSomething.name); // "doSomething"
+			console.log(doAnotherThing.name); // "doAnotherThing"
+			在此代码中， 由于是一个函数声明， doSomething() 就拥有一个值为 "doSomething" 的name 属性。
+			 而匿名函数表达式 doAnotherThing() 的 name 属性值则是 "doAnotherThing"， 因为这是该函数所赋值的变量的名称。	
+			<h5>选择合适的名称</h5>
+			<h5>名称属性的特殊情况</h5>
+			var doSomething = function doSomethingElse() {
+			// ...
+			};
+			var person = {
+			get firstName() {
+			return "Nicholas"
+			},
+			sayName: function() {
+			console.log(this.name);
+			}
+			} 
+			console.log(doSomething.name); // "doSomethingElse"
+			console.log(person.sayName.name); // "sayName"
+			var descriptor = Object.getOwnPropertyDescriptor(person, "firstName");
+			console.log(descriptor.get.name); // "get firstName"
+			 doSomething.name 的值是 "doSomethingElse" ， 因为该函数表达式自己拥有一个名称， 并且此名称的优先级要高于赋值目标的变量名。
+			 person.sayName() 的 name 属性值是"sayName" ， 正如对象字面量指定的那样。
+			  类似的， person.firstName 实际是个 getter 函数， 因此它的名称是 "get firstName" ， 以标明它的特征；
+			   同样， setter 函数也会带有"set" 的前缀（ getter 与 setter 函数都必须用 Object.getOwnPropertyDescriptor() 来检索） 。
+			使用 bind() 创建的函数会在名称属性值之前带有"bound" 前缀； 而使用 Function 构造器创建的函数， 其名称属性则会有 "anonymous" 前缀，
+			var doSomething = function() {
+			// ...
+			};
+			console.log(doSomething.bind().name); // "bound doSomething"
+			console.log((new Function()).name); // "anonymous"
+			绑定产生的函数拥有原函数的名称， 并总会附带 "bound" 前缀，
+			 因此 doSomething() 函数的绑定版本就具有 "bound doSomething" 名称。
+			需要注意的是， 函数的 name 属性值未必会关联到同名变量。
+			 name 属性是为了在调试时获得有用的相关信息， 所以不能用 name 属性值去获取对函数的引用
+		<h4>明确函数的双重用途 </h4>
+			<h5>在 ES5 中判断函数如何被调用</h5>
+			<h5>new.target 元属性</h5>
+		<h4>块级函数 </h4>
+			<h5>决定何时使用块级函数</h5>
+			<h5>非严格模式的块级函数</h5>
+		<h4>箭头函数 </h4>
+			<h5>箭头函数语法</h5>
+			<h5>创建立即调用函数表达式</h5>
+			<h5>没有 this 绑定</h5>
+			<h5>箭头函数与数组</h5>
+			<h5>没有 arguments 绑定</h5>
+			<h5>识别箭头函数</h5>
+		<h4>尾调用优化 </h4>
+			<h5>有何不同？</h5>
+			<h5>如何控制尾调用优化</h5>
+	</body>
+</html>
